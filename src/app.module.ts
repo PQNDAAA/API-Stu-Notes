@@ -8,10 +8,14 @@ import { DbService } from './db/db.service';
 import { DbModule } from './db/db.module';
 
 @Module({
-  imports: [AuthModule, UsersModule, DbModule,
+  imports: [
+    AuthModule,
+    UsersModule,
+    DbModule,
     ConfigModule.forRoot({
       isGlobal: true,
-    })],
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService, DbService],
 })

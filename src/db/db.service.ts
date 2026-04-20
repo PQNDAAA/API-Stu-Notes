@@ -7,10 +7,10 @@ export class DbService implements OnModuleInit {
 
   onModuleInit() {
     this.pool = new Pool({
-      host: 'localhost',
+      host: '127.0.0.1',
       port: 5432,
       user: 'admin',
-      password: '089!3503Ro!!*',
+      password: 'Dg061103',
       database: 'stunotes',
     });
   }
