@@ -13,12 +13,13 @@ export class UsersService {
     if (await this.checkIfUserExists(user.email)) {
       throw new BadRequestException('User already exists');
     }
+
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const result = await this.db.query(
-      `INSERT INTO users(email, name, password, age, created_at)
+      `INSERT INTO users(email, username, password, dateOfBirthday, created_at)
      VALUES($1, $2, $3, $4, NOW())
      RETURNING *`,
-      [user.email, user.name, hashedPassword, user.age],
+      [user.email, user.username, hashedPassword, user.dateOfBirthday],
     );
     return result.rows[0];
   }
@@ -36,9 +37,10 @@ export class UsersService {
   }
 
   async getNameById(id: number) {
-    const result = await this.db.query('SELECT name FROM users WHERE id = $1', [
-      id,
-    ]);
+    const result = await this.db.query(
+      'SELECT username FROM users WHERE id = $1',
+      [id],
+    );
 
     if (result.rows.length === 0) {
       throw new BadRequestException('No accounts found');
