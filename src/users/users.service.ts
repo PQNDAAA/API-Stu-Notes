@@ -48,6 +48,28 @@ export class UsersService {
     return result.rows[0];
   }
 
+  async createSubject(id: number, name: string) {
+    const result = await this.db.query(
+      `INSERT INTO subjects(user_id, name)
+VALUES($1, $2)
+RETURNING *`,
+      [id, name],
+    );
+    return result.rows[0];
+  }
+
+  async getSubjectsById(id: number) {
+    const result = await this.db.query(
+      'SELECT name FROM subjects WHERE user_id = $1',
+      [id],
+    );
+
+    if (result.rows.length === 0) {
+      throw new BadRequestException('No accounts found');
+    }
+    return result.rows;
+  }
+
   getUsersByEmail(value: string) {
     if (!value) return null;
 

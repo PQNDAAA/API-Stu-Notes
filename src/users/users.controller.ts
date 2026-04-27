@@ -1,7 +1,16 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import * as userInterface from '../user/user.interface';
 import { JwtAuthGuard } from 'src/auth/jwt.authguard';
+import * as subjectInterface from '../subject/subject.interface';
 
 @Controller('users')
 export class UsersController {
@@ -13,13 +22,20 @@ export class UsersController {
     return this.users.getNameById(req.user.userId);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('subjects')
+  getSubjectsById(@Req() req) {
+    return this.users.getSubjectsById(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('createSubject')
+  createSubject(@Req() req, @Body('name') name: string) {
+    return this.users.createSubject(req.user.userId, name);
+  }
+
   @Post()
   create(@Body() body: userInterface.User) {
     return this.users.create(body);
-  }
-
-  @Get()
-  getUsers() {
-    return this.users.getUsers();
   }
 }
