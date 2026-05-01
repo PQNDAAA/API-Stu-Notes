@@ -36,6 +36,14 @@ export class UsersService {
     return result.rows.length > 0;
   }
 
+  async checkIfSubjectExists(subject: string, user_id: number) {
+    const result = await this.db.query(
+      'SELECT 1 FROM subjects WHERE user_id = $1 AND name = $2',
+      [user_id, subject],
+    );
+    return result.rows.length > 0;
+  }
+
   async getNameById(id: number) {
     const result = await this.db.query(
       'SELECT username FROM users WHERE id = $1',
@@ -49,6 +57,9 @@ export class UsersService {
   }
 
   async createSubject(id: number, name: string) {
+    if (await this.checkIfSubjectExists(name, id)) {
+      throw new BadRequestException('Subject already exists');
+    }
     const result = await this.db.query(
       `INSERT INTO subjects(user_id, name)
 VALUES($1, $2)
