@@ -5,8 +5,6 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  private users: User[] = [];
-
   constructor(private db: DbService) {}
 
   async create(user: User) {
@@ -16,10 +14,17 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const result = await this.db.query(
-      `INSERT INTO users(email, username, password, dateOfBirthday, created_at)
-     VALUES($1, $2, $3, $4, NOW())
+      `INSERT INTO users(email, username, password, dateOfBirthday, created_at, apple_user_id, google_user_id)
+     VALUES($1, $2, $3, $4, NOW(), $5,$6)
      RETURNING *`,
-      [user.email, user.username, hashedPassword, user.dateOfBirthday],
+      [
+        user.email,
+        user.username,
+        hashedPassword,
+        user.dateOfBirthday,
+        user?.apple_user_id,
+        user?.google_user_id,
+      ],
     );
     return result.rows[0];
   }
@@ -81,9 +86,21 @@ RETURNING *`,
     return result.rows;
   }
 
-  getUsersByEmail(value: string) {
-    if (!value) return null;
+  async findAppleId(sub: string) {
+    const result = await this.db.query(
+      'SELECT 1 FROM users where apple_user_id = $1',
+      [sub],
+    );
 
-    return this.users.filter((u) => u.email.toLowerCase === value.toLowerCase);
+    return result.rows[0];
+  }
+
+  async findGoogleId(sub: string) {
+    const result = await this.db.query(
+      'SELECT 1 FROM users where google_user_id = $1',
+      [sub],
+    );
+
+    return result.rows[0];
   }
 }

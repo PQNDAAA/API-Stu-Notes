@@ -2,6 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { DbService } from 'src/db/db.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import appleSignin from 'apple-signin-auth';
+import { OAuth2Client } from 'google-auth-library';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 @Injectable()
 export class AuthService {
@@ -31,5 +35,20 @@ export class AuthService {
     });
 
     return { accessToken: token };
+  }
+
+  async verifyAppleToken(identifyToken: string) {
+    const payload = await appleSignin.verifyIdToken(identifyToken, {
+      audience: 'fr.dgsd.stunotes',
+    });
+    return payload;
+  }
+
+  async verifyGoogleToken(idToken: string) {
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    return ticket.getPayload();
   }
 }
