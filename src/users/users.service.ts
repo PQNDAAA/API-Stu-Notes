@@ -34,6 +34,14 @@ export class UsersService {
     return result.rows;
   }
 
+  async modifyUsername(id: number, username: string) {
+    const result = await this.db.query(
+      'UPDATE users SET username = $1 WHERE id = $2',
+      [username, id],
+    );
+    return result.rows[0];
+  }
+
   async checkIfUserExists(email: string) {
     const result = await this.db.query('SELECT 1 FROM users WHERE email = $1', [
       email,

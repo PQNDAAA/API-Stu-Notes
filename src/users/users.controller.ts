@@ -23,6 +23,11 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('username/edit')
+  modifyUsername(@Req() req, @Body('username') username: string) {
+    return this.users.modifyUsername(req.user.userId, username);
+  }
+  @UseGuards(JwtAuthGuard)
   @Get('subjects')
   getSubjectsById(@Req() req) {
     return this.users.getSubjectsById(req.user.userId);

@@ -29,22 +29,21 @@ export class AuthController {
 
     let user = await this.users.findAppleId(payload.sub);
 
-    if (!user) {
-      user = await this.users.create({
-        email: payload.email,
-        username: body.name,
-        password: '',
-        dateOfBirthday: '',
-        apple_user_id: payload.sub,
-      });
+    if (user) {
+      const token = await this.generateToken(user);
+      return { accessToken: token, isNewUser: false };
     }
 
-    const token = await this.jwtService.signAsync({
-      userId: user.id,
-      userEmail: user.email,
+    user = await this.users.create({
+      email: payload.email,
+      username: '',
+      password: '',
+      dateOfBirthday: '',
+      apple_user_id: payload.sub,
     });
 
-    return { accessToken: token };
+    const token = await this.generateToken(user);
+    return { accessToken: token, isNewUser: true };
   }
 
   @Post('google/signup')
@@ -68,17 +67,22 @@ export class AuthController {
         email: email,
         google_user_id: payload.sub,
         password: '',
-        username: name,
+        username: '',
       });
+      const token = await this.generateToken(user);
+      return { accessToken: token, isNewUser: true };
     } else if (!user && (!email || !user)) {
       throw new Error('Impossible de récupérer les informations Google');
     }
 
-    const token = await this.jwtService.signAsync({
+    const token = await this.generateToken(user);
+    return { accessToken: token, isNewUser: false };
+  }
+
+  async generateToken(user: any) {
+    return await this.jwtService.signAsync({
       userId: user.id,
       userEmail: user.email,
     });
-
-    return { accessToken: token };
   }
 }
