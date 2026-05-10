@@ -8,10 +8,6 @@ export class UsersService {
   constructor(private db: DbService) {}
 
   async create(user: User) {
-    if (await this.checkIfUserExists(user.email)) {
-      throw new BadRequestException('User already exists');
-    }
-
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const result = await this.db.query(
       `INSERT INTO users(email, username, password, dateOfBirthday, created_at, apple_user_id, google_user_id)
@@ -42,7 +38,15 @@ export class UsersService {
     return result.rows[0];
   }
 
-  async checkIfUserExists(email: string) {
+  async checkIfUserExists(username: string): Promise<boolean> {
+    const result = await this.db.query(
+      'SELECT 1 FROM users WHERE username = $1',
+      [username],
+    );
+    return result.rows.length > 0;
+  }
+
+  async checkIfEmailExists(email: string): Promise<boolean> {
     const result = await this.db.query('SELECT 1 FROM users WHERE email = $1', [
       email,
     ]);

@@ -10,7 +10,6 @@ import {
 import { UsersService } from './users.service';
 import * as userInterface from '../user/user.interface';
 import { JwtAuthGuard } from 'src/auth/jwt.authguard';
-import * as subjectInterface from '../subject/subject.interface';
 
 @Controller('users')
 export class UsersController {
@@ -20,6 +19,16 @@ export class UsersController {
   @Get('username')
   getUserById(@Req() req) {
     return this.users.getNameById(req.user.userId);
+  }
+
+  @Get('check-username/:username')
+  async checkIfUserExists(@Param('username') username: string) {
+    return await this.users.checkIfUserExists(username);
+  }
+
+  @Get('check-email/:email')
+  async checkIfEmailExists(@Param('email') email: string) {
+    return await this.users.checkIfEmailExists(email);
   }
 
   @UseGuards(JwtAuthGuard)
