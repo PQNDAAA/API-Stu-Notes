@@ -18,7 +18,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('username')
   getUserById(@Req() req) {
-    return this.users.getNameById(req.user.userId);
+    return this.users.getUserById(req.user.userId);
   }
 
   @Get('check-username/:username')

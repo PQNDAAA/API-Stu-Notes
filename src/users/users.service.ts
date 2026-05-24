@@ -61,16 +61,11 @@ export class UsersService {
     return result.rows.length > 0;
   }
 
-  async getNameById(id: number) {
-    const result = await this.db.query(
-      'SELECT username FROM users WHERE id = $1',
-      [id],
-    );
-
-    if (result.rows.length === 0) {
-      throw new BadRequestException('No accounts found');
-    }
-    return result.rows[0];
+  async getUserById(id: number) {
+    const result = await this.db.query('SELECT * FROM users WHERE id = $1', [
+      id,
+    ]);
+    return { user: result.rows[0], isExisting: result.rows.length > 0 };
   }
 
   async createSubject(id: number, name: string) {
@@ -100,7 +95,7 @@ RETURNING *`,
 
   async findAppleId(sub: string) {
     const result = await this.db.query(
-      'SELECT 1 FROM users where apple_user_id = $1',
+      'SELECT * FROM users where apple_user_id = $1',
       [sub],
     );
 
@@ -109,7 +104,7 @@ RETURNING *`,
 
   async findGoogleId(sub: string) {
     const result = await this.db.query(
-      'SELECT 1 FROM users where google_user_id = $1',
+      'SELECT * FROM users where google_user_id = $1',
       [sub],
     );
 
