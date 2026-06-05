@@ -38,6 +38,14 @@ export class UsersService {
     return result.rows[0];
   }
 
+  async modifyUser(id: number, targetKey: string, newValue: string) {
+    const result = await this.db.query(
+      `UPDATE users SET ${targetKey} = $1 WHERE id = $2 RETURNING *`,
+      [newValue, id],
+    );
+    return result.rows[0];
+  }
+
   async checkIfUserExists(username: string): Promise<boolean> {
     const result = await this.db.query(
       'SELECT 1 FROM users WHERE username = $1',

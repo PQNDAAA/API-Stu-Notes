@@ -16,9 +16,22 @@ export class UsersController {
   constructor(private readonly users: UsersService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get('username')
+  @Get('profile')
   getUserById(@Req() req) {
     return this.users.getUserById(req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('profile')
+  async modifyProfile(
+    @Req() req,
+    @Body() body: { targetKey: string; newValue: string },
+  ) {
+    return this.users.modifyUser(
+      req.user.userId,
+      body.targetKey,
+      body.newValue,
+    );
   }
 
   @Get('check-username/:username')
