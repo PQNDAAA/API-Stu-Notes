@@ -1,15 +1,22 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import * as userInterface from '../user/user.interface';
 import { JwtAuthGuard } from 'src/auth/jwt.authguard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { extname } from 'path';
+import { diskStorage } from 'multer';
+import { unlink } from 'node:fs/promises';
 
 @Controller('users')
 export class UsersController {
@@ -45,7 +52,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('username/edit')
+  @Patch('username/edit')
   modifyUsername(@Req() req, @Body('username') username: string) {
     return this.users.modifyUsername(req.user.userId, username);
   }
@@ -61,8 +68,48 @@ export class UsersController {
     return this.users.createSubject(req.user.userId, name);
   }
 
-  @Post()
-  create(@Body() body: userInterface.User) {
-    return this.users.create(body);
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/photo')
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: 'src/uploads/avatars',
+        filename: (req, file, callback) => {
+          const user = req.user as { userId: number; userEmail: string };
+
+          const uniqueName = `${user.userId}-${Date.now()}${extname(file.originalname)}`;
+          console.log('Nom du fichier généré:', uniqueName);
+          console.log('CWD actuel:', process.cwd());
+          callback(null, uniqueName);
+        },
+      }),
+      limits: { fileSize: 5 * 1024 * 1024 }, //5MB MAX
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return callback(
+            new BadRequestException('Format non approprié'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
+  async updatePhoto(@UploadedFile() file: Express.Multer.File, @Req() req) {
+    const currentUser = await this.users.getUserById(req.user.userId);
+
+    if (currentUser.user.photo_url) {
+      const old_path = process.cwd() + '/' + currentUser.user.photo_url;
+      try {
+        await unlink(old_path);
+      } catch (e) {
+        throw new Error('Unable to delete old path.', e);
+      }
+    }
+
+    const photoUrl = `src/uploads/avatars/${file.filename}`;
+    await this.users.updatePhotoUrl(photoUrl, req.user.userId);
+
+    return { photoUrl };
   }
 }

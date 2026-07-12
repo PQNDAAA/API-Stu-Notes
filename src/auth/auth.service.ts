@@ -34,6 +34,8 @@ export class AuthService {
       userEmail: user.email,
     });
 
+    console.log('Hello');
+
     return { accessToken: token };
   }
 
