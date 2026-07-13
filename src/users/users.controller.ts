@@ -3,10 +3,12 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   Patch,
   Post,
   Req,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -14,7 +16,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/jwt.authguard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { extname } from 'path';
+import { extname, join } from 'path';
 import { diskStorage } from 'multer';
 import { unlink } from 'node:fs/promises';
 
@@ -111,5 +113,19 @@ export class UsersController {
     await this.users.updatePhotoUrl(photoUrl, req.user.userId);
 
     return { photoUrl };
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('me/photo')
+  async getMyPhoto(@Req() req, @Res() res) {
+    const currentUser = await this.users.getUserById(req.user.userId);
+
+    if (!currentUser.user.photo_url) {
+      throw new NotFoundException('No photo URL');
+    }
+
+    const filepath = join(process.cwd(), currentUser.user.photo_url);
+
+    console.log(filepath);
+    return res.sendFile(filepath);
   }
 }
