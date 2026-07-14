@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -114,6 +115,7 @@ export class UsersController {
 
     return { photoUrl };
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('me/photo')
   async getMyPhoto(@Req() req, @Res() res) {
@@ -127,5 +129,27 @@ export class UsersController {
 
     console.log(filepath);
     return res.sendFile(filepath);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me/photo')
+  async deletePhoto(@Req() req) {
+    const currentUser = await this.users.getUserById(req.user.userId);
+
+    if (!currentUser.user.photo_url) {
+      throw new NotFoundException('No photo URL to delete.');
+    }
+
+    const filepath = join(process.cwd(), currentUser.user.photo_url);
+
+    try {
+      await unlink(filepath);
+    } catch (e) {
+      throw new Error('Unable to delete old path.', e);
+    }
+
+    await this.users.deletePhotoUrl(req.user.userId);
+
+    return { message: 'Photo supprimée.' };
   }
 }

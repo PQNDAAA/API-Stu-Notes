@@ -120,14 +120,18 @@ RETURNING *`,
   }
 
   async updatePhotoUrl(path: string, id: number) {
-
-
-
     const result = await this.db.query(
       'UPDATE users SET photo_url = $1 WHERE id = $2',
       [path, id],
     );
+    return result.rows[0];
+  }
 
+  async deletePhotoUrl(id: number) {
+    const result = await this.db.query(
+      'UPDATE users SET photo_url = NULL WHERE id = $1',
+      [id],
+    );
     return result.rows[0];
   }
 }
