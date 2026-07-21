@@ -8,10 +8,12 @@ export class UsersService {
   constructor(private db: DbService) {}
 
   async create(user: User) {
+    console.log(user);
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const result = await this.db.query(
-      `INSERT INTO users(email, username, password, dateOfBirthday, created_at, apple_user_id, google_user_id)
-     VALUES($1, $2, $3, $4, NOW(), $5,$6)
+      `INSERT INTO users(email, username, password, dateOfBirthday, created_at, apple_user_id, google_user_id,
+                  photo_url, reset_password_token, reset_password_expires)
+     VALUES($1, $2, $3, $4, NOW(), $5,$6, $7, $8, $9)
      RETURNING *`,
       [
         user.email,
@@ -20,6 +22,9 @@ export class UsersService {
         user.dateOfBirthday,
         user?.apple_user_id,
         user?.google_user_id,
+        user?.photo_url,
+        user?.reset_password_token,
+        user?.reset_password_expires,
       ],
     );
     return result.rows[0];

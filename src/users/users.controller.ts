@@ -20,10 +20,16 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { extname, join } from 'path';
 import { diskStorage } from 'multer';
 import { unlink } from 'node:fs/promises';
+import * as userInterface from '../user/user.interface';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly users: UsersService) {}
+
+  @Post()
+  createUser(@Body() newUser: userInterface.User) {
+    return this.users.create(newUser);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -32,7 +38,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('profile')
+  @Patch('profile')
   async modifyProfile(
     @Req() req,
     @Body() body: { targetKey: string; newValue: string },
